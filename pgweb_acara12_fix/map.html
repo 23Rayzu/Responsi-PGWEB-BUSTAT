@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web-GIS Terminal Lampung</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-search/dist/leaflet-search.min.css">
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background-color: #007bff;
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .navbar-nav .nav-link {
+            color: #fff;
+            font-size: 1.1rem;
+            margin-right: 20px;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #ffd700;
+        }
+
+        /* Page Header */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-top: 40px;
+        }
+
+        /* Map Container */
+        #map {
+            height: 70vh;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer Styling */
+        footer {
+            background-color: #343a40;
+            color: #fff;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        /* Legend Card */
+        #legend {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            z-index: 1000;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+
+        #legend h5 {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        #legend img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        /* Section Styling */
+        section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-top: 40px;
+        }
+
+        section h4 {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        section a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        section a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            #map {
+                height: 50vh;
+            }
+
+            footer {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">BUSTAT LAMPUNG</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="beranda.html">Beranda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="map.html">Peta</a></li>
+                    <li class="nav-item"><a class="nav-link" href="index.php">Tabel Informasi</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="text-center">Sebaran Titik Lokasi Terminal Bus di Provinsi Lampung</h1>
+    </div>
+
+    <div id="map" class="mt-4 mb-4"></div>
+
+    <footer>
+        <p>&copy; 2024 Mukhlish Sulthon Nashrullah | All Rights Reserved</p>
+    </footer>
+
+    <div id="legend" class="card p-3">
+        <h5 class="card-title">Legenda</h5>
+        <img src="http://localhost:8080/geoserver/lampung_terminal/wms?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=lampung_terminal%3Aterminal_pt_180020240902120538&format=image/png"
+            alt="Legenda Persebaran Terminal" style="width: 50px; height: auto;"> <!-- Mengatur ukuran gambar -->
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #333; font-family: 'Times New Roman', Times, serif; font-weight: bold;">
+            Terminal Bus
+        </p>
+        
+        <!-- Tambahkan legenda kabupaten -->
+        <img src="http://localhost:8080/geoserver/pgwebacr11/wms?service=WMS&version=1.1.0&request=GetLegendGraphic&layer=pgwebacr11:administrasikabkota_ar_180020240903075753&format=image/png"
+            alt="Legenda Kabupaten" style="width: 100x; height: auto;"> <!-- Mengatur ukuran gambar -->
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-search/dist/leaflet-search.min.js"></script>
+
+    <script>
+        // Initialize map
+        var map = L.map('map').setView([-5.1370, 105.2620], 9);
+
+        // Tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Peta oleh <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // WMS Layer for administrative boundaries
+        var batasKecamatan = L.tileLayer.wms('http://localhost:8080/geoserver/pgwebacr11/wms', {
+            layers: 'pgwebacr11:administrasikabkota_ar_180020240903075753',
+            format: 'image/png',
+            transparent: true
+        }).addTo(map);
+
+        // WMS Layer for roads
+        var jalan = L.tileLayer.wms('http://localhost:8080/geoserver/jalan_balam_pgweb_acr12/wms', {
+            layers: 'jalan_balam_pgweb_acr12:jalan_ln_180020240910082731',
+            format: 'image/png',
+            transparent: true
+        }).addTo(map);
+
+        // Tambahkan layer titik
+        var titik = L.tileLayer.wms("http://localhost:8080/geoserver/lampung_terminal/wms", {
+            layers: "lampung_terminal:terminal_pt_180020240902120538",  // Layer Titik
+            transparent: true,
+            format: 'image/png'
+        }).addTo(map);
+
+        // Search Control with Leaflet Search
+        var searchControl = new L.Control.Search({
+            url: 'http://localhost:8080/geoserver/lampung_terminal/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=lampung_terminal%3Aterminal_pt_180020240902120538&outputFormat=application/json',
+            propertyName: 'namobj',
+            jsonpParam: false,
+            zoom: 15,
+            marker: {
+                icon: false
+            }
+        });
+        map.addControl(searchControl);
+    </script>
+
+    <section>
+        <h4>Web Informasi Ibu Kota Provinsi</h4>
+        <a href="https://bandarlampungkota.go.id/" target="_blank"
+            rel="noopener noreferrer">https://bandarlampungkota.go.id/</a>
+    </section>
+</body>
+
+</html>
